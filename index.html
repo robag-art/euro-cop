@@ -12,33 +12,28 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #ffffff; --surface: #f5f5f5; --border: #e8e8e8;
-    --text: #111; --muted: #999; --font: 'Inter', sans-serif;
-  }
+  :root { --bg: #ffffff; --border: #e8e8e8; --text: #111; --muted: #999; --font: 'Inter', sans-serif; }
   html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
   body { display: flex; align-items: center; justify-content: center; padding: max(env(safe-area-inset-top),32px) 24px max(env(safe-area-inset-bottom),32px); min-height: 100dvh; }
   .card { width: 100%; max-width: 360px; }
-  .header { margin-bottom: 40px; }
+  .header { margin-bottom: 36px; }
   .title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
   .rate-line { font-size: 12px; color: var(--muted); }
-  .field { margin-bottom: 32px; }
-  .field-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-  .field-label .flag { font-size: 14px; }
+  .field { margin-bottom: 24px; }
+  .field-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
   .input-wrap { position: relative; }
   .pfx { position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: var(--muted); pointer-events: none; width: 40px; }
   input[type=number] { width: 100%; background: transparent; border: none; border-bottom: 1.5px solid var(--border); padding: 4px 0 12px 40px; font-family: var(--font); font-size: 40px; font-weight: 300; color: var(--text); outline: none; transition: border-color .2s; -moz-appearance: textfield; -webkit-appearance: none; }
   input::-webkit-inner-spin-button, input::-webkit-outer-spin-button { -webkit-appearance: none; }
   input:focus { border-bottom-color: var(--text); }
-  .swap-row { display: flex; align-items: center; gap: 12px; margin: -16px 0 16px; }
+  .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .preset-btn { background: transparent; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-family: var(--font); font-size: 11px; font-weight: 500; padding: 5px 12px; cursor: pointer; transition: border-color .15s, color .15s; -webkit-tap-highlight-color: transparent; }
+  .preset-btn:active, .preset-btn.active { border-color: var(--text); color: var(--text); }
+  .swap-row { display: flex; align-items: center; gap: 12px; margin: 8px 0 20px; }
   .swap-line { flex: 1; height: 1px; background: var(--border); }
   .swap-btn { background: transparent; border: 1.5px solid var(--border); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; color: var(--muted); transition: border-color .2s, color .2s, transform .22s; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
   .swap-btn:active { border-color: var(--text); color: var(--text); transform: rotate(180deg); }
-  .presets-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; margin-top: 8px; }
-  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
-  .preset-btn { background: transparent; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-family: var(--font); font-size: 12px; font-weight: 500; padding: 6px 14px; cursor: pointer; transition: border-color .15s, color .15s; -webkit-tap-highlight-color: transparent; }
-  .preset-btn:active, .preset-btn.active { border-color: var(--text); color: var(--text); }
-  .footer { font-size: 11px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 20px; }
+  .footer { font-size: 11px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 28px; }
 </style>
 </head>
 <body>
@@ -47,33 +42,43 @@
     <div class="title">Convertisseur EUR ↔ COP</div>
     <div class="rate-line">1 EUR = 3 925 COP · XE · 29 juin 2026</div>
   </div>
+
   <div class="field">
-    <div class="field-label"><span class="flag">🇪🇺</span> Euro</div>
+    <div class="field-label">🇪🇺 Euro</div>
     <div class="input-wrap">
       <span class="pfx">EUR</span>
       <input type="number" id="eur" value="100" min="0" inputmode="decimal" placeholder="0">
     </div>
+    <div class="presets" id="eur-presets">
+      <button class="preset-btn" onclick="setEUR(20)">20 €</button>
+      <button class="preset-btn" onclick="setEUR(50)">50 €</button>
+      <button class="preset-btn active" onclick="setEUR(100)">100 €</button>
+      <button class="preset-btn" onclick="setEUR(200)">200 €</button>
+      <button class="preset-btn" onclick="setEUR(500)">500 €</button>
+    </div>
   </div>
+
   <div class="swap-row">
     <div class="swap-line"></div>
     <button class="swap-btn" onclick="swapFocus()">⇅</button>
     <div class="swap-line"></div>
   </div>
+
   <div class="field">
-    <div class="field-label"><span class="flag">🇨🇴</span> Peso Colombiano</div>
+    <div class="field-label">🇨🇴 Peso Colombiano</div>
     <div class="input-wrap">
       <span class="pfx">COP</span>
       <input type="number" id="cop" value="392529" min="0" inputmode="decimal" placeholder="0">
     </div>
+    <div class="presets" id="cop-presets">
+      <button class="preset-btn" onclick="setCOP(10000)">10k $</button>
+      <button class="preset-btn" onclick="setCOP(50000)">50k $</button>
+      <button class="preset-btn" onclick="setCOP(100000)">100k $</button>
+      <button class="preset-btn" onclick="setCOP(200000)">200k $</button>
+      <button class="preset-btn" onclick="setCOP(500000)">500k $</button>
+    </div>
   </div>
-  <div class="presets-label">Montants rapides</div>
-  <div class="presets">
-    <button class="preset-btn" onclick="setEUR(20)">20 €</button>
-    <button class="preset-btn" onclick="setEUR(50)">50 €</button>
-    <button class="preset-btn active" onclick="setEUR(100)">100 €</button>
-    <button class="preset-btn" onclick="setEUR(200)">200 €</button>
-    <button class="preset-btn" onclick="setEUR(500)">500 €</button>
-  </div>
+
   <div class="footer">
     Taux mid-market · XE · 29 juin 2026<br>
     Meilleurs taux à Medellín : Bancolombia ATM ou Revolut/Wise
@@ -85,6 +90,7 @@ let updating = false;
 const eurEl = document.getElementById('eur');
 const copEl = document.getElementById('cop');
 function fmt(n) { return parseFloat(n.toFixed(2)); }
+function clearPresets() { document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active')); }
 eurEl.addEventListener('input', () => {
   if (updating) return; updating = true;
   const v = parseFloat(eurEl.value);
@@ -99,9 +105,13 @@ copEl.addEventListener('input', () => {
 });
 function setEUR(v) {
   eurEl.value = v; copEl.value = fmt(v * RATE); clearPresets();
-  document.querySelectorAll('.preset-btn').forEach(b => { if (b.textContent === v + ' €') b.classList.add('active'); });
+  document.querySelectorAll('#eur-presets .preset-btn').forEach(b => { if (b.textContent === v + ' €') b.classList.add('active'); });
 }
-function clearPresets() { document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active')); }
+function setCOP(v) {
+  copEl.value = v; eurEl.value = fmt(v / RATE); clearPresets();
+  const label = v >= 1000 ? (v/1000) + 'k $' : v + ' $';
+  document.querySelectorAll('#cop-presets .preset-btn').forEach(b => { if (b.textContent === label) b.classList.add('active'); });
+}
 function swapFocus() { if (document.activeElement === eurEl) copEl.focus(); else eurEl.focus(); }
 </script>
 </body>
