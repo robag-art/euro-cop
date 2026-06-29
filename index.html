@@ -10,81 +10,99 @@
 <meta name="theme-color" content="#ffffff">
 <title>EUR ↔ COP</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #ffffff; --surface: #f7f7f7; --border: #e8e8e8;
-    --text: #111111; --muted: #999999; --font: 'Inter', sans-serif;
+    --bg: #ffffff; --surface: #f5f5f5; --border: #e8e8e8;
+    --text: #111; --muted: #999; --font: 'Inter', sans-serif;
   }
   html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
-  body { display: flex; align-items: center; justify-content: center; padding: max(env(safe-area-inset-top),24px) 20px max(env(safe-area-inset-bottom),24px); min-height: 100dvh; }
+  body { display: flex; align-items: center; justify-content: center; padding: max(env(safe-area-inset-top),32px) 24px max(env(safe-area-inset-bottom),32px); min-height: 100dvh; }
   .card { width: 100%; max-width: 360px; }
-  .header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
-  .title { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-  .rate-txt { font-size: 12px; color: var(--muted); }
-  .toggle { display: flex; background: var(--surface); border-radius: 8px; padding: 3px; margin-bottom: 28px; gap: 3px; }
-  .dir-btn { flex: 1; padding: 8px 0; background: transparent; border: none; color: var(--muted); font-family: var(--font); font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: background .18s, color .18s; -webkit-tap-highlight-color: transparent; }
-  .dir-btn.active { background: #111; color: #fff; }
-  .field { margin-bottom: 8px; }
-  .field-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .header { margin-bottom: 40px; }
+  .title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .rate-line { font-size: 12px; color: var(--muted); }
+  .field { margin-bottom: 32px; }
+  .field-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .field-label .flag { font-size: 14px; }
   .input-wrap { position: relative; }
-  .pfx { position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 600; color: var(--muted); pointer-events: none; }
-  input[type=number] { width: 100%; background: transparent; border: none; border-bottom: 1.5px solid var(--border); padding: 6px 0 10px 36px; font-family: var(--font); font-size: 36px; font-weight: 300; color: var(--text); outline: none; transition: border-color .2s; -moz-appearance: textfield; -webkit-appearance: none; }
+  .pfx { position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: var(--muted); pointer-events: none; width: 40px; }
+  input[type=number] { width: 100%; background: transparent; border: none; border-bottom: 1.5px solid var(--border); padding: 4px 0 12px 40px; font-family: var(--font); font-size: 40px; font-weight: 300; color: var(--text); outline: none; transition: border-color .2s; -moz-appearance: textfield; -webkit-appearance: none; }
   input::-webkit-inner-spin-button, input::-webkit-outer-spin-button { -webkit-appearance: none; }
-  input:focus { border-bottom-color: #111; }
-  .swap-row { display: flex; justify-content: center; margin: 16px 0; }
-  .swap-btn { background: transparent; border: 1.5px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: var(--muted); transition: border-color .2s, color .2s, transform .22s; -webkit-tap-highlight-color: transparent; }
-  .swap-btn:active { border-color: #111; color: #111; transform: rotate(180deg); }
-  .result-wrap { position: relative; padding: 6px 0 10px 36px; border-bottom: 1.5px solid var(--border); }
-  .result-value { font-size: 36px; font-weight: 300; color: #111; min-height: 44px; display: flex; align-items: center; }
-  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0 16px; }
-  .presets { display: flex; gap: 8px; flex-wrap: wrap; }
+  input:focus { border-bottom-color: var(--text); }
+  .swap-row { display: flex; align-items: center; gap: 12px; margin: -16px 0 16px; }
+  .swap-line { flex: 1; height: 1px; background: var(--border); }
+  .swap-btn { background: transparent; border: 1.5px solid var(--border); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; color: var(--muted); transition: border-color .2s, color .2s, transform .22s; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+  .swap-btn:active { border-color: var(--text); color: var(--text); transform: rotate(180deg); }
+  .presets-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; margin-top: 8px; }
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
   .preset-btn { background: transparent; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-family: var(--font); font-size: 12px; font-weight: 500; padding: 6px 14px; cursor: pointer; transition: border-color .15s, color .15s; -webkit-tap-highlight-color: transparent; }
-  .preset-btn.active, .preset-btn:active { border-color: #111; color: #111; }
-  .footer { margin-top: 28px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .preset-btn:active, .preset-btn.active { border-color: var(--text); color: var(--text); }
+  .footer { font-size: 11px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 20px; }
 </style>
 </head>
 <body>
 <div class="card">
   <div class="header">
-    <span class="title">EUR ↔ COP</span>
-    <span class="rate-txt" id="rate-txt">1 EUR = 3 925 COP</span>
-  </div>
-  <div class="toggle">
-    <button class="dir-btn active" id="btn-ec" onclick="setDir('ec')">EUR → COP</button>
-    <button class="dir-btn" id="btn-ce" onclick="setDir('ce')">COP → EUR</button>
+    <div class="title">Convertisseur EUR ↔ COP</div>
+    <div class="rate-line">1 EUR = 3 925 COP · XE · 29 juin 2026</div>
   </div>
   <div class="field">
-    <div class="field-label" id="from-lbl">Euro</div>
+    <div class="field-label"><span class="flag">🇪🇺</span> Euro</div>
     <div class="input-wrap">
-      <span class="pfx" id="from-pfx">EUR</span>
-      <input type="number" id="amt" value="100" min="0" inputmode="decimal">
+      <span class="pfx">EUR</span>
+      <input type="number" id="eur" value="100" min="0" inputmode="decimal" placeholder="0">
     </div>
   </div>
   <div class="swap-row">
-    <button class="swap-btn" onclick="swap()">⇅</button>
+    <div class="swap-line"></div>
+    <button class="swap-btn" onclick="swapFocus()">⇅</button>
+    <div class="swap-line"></div>
   </div>
   <div class="field">
-    <div class="field-label" id="to-lbl">Peso Colombiano</div>
-    <div class="result-wrap">
-      <span class="pfx" id="to-pfx">COP</span>
-      <div class="result-value" id="res">—</div>
+    <div class="field-label"><span class="flag">🇨🇴</span> Peso Colombiano</div>
+    <div class="input-wrap">
+      <span class="pfx">COP</span>
+      <input type="number" id="cop" value="392529" min="0" inputmode="decimal" placeholder="0">
     </div>
   </div>
-  <hr class="divider">
-  <div class="presets" id="presets"></div>
-  <div class="footer">Taux mid-market · XE · 29 juin 2026</div>
+  <div class="presets-label">Montants rapides</div>
+  <div class="presets">
+    <button class="preset-btn" onclick="setEUR(20)">20 €</button>
+    <button class="preset-btn" onclick="setEUR(50)">50 €</button>
+    <button class="preset-btn active" onclick="setEUR(100)">100 €</button>
+    <button class="preset-btn" onclick="setEUR(200)">200 €</button>
+    <button class="preset-btn" onclick="setEUR(500)">500 €</button>
+  </div>
+  <div class="footer">
+    Taux mid-market · XE · 29 juin 2026<br>
+    Meilleurs taux à Medellín : Bancolombia ATM ou Revolut/Wise
+  </div>
 </div>
 <script>
 const RATE = 3925.29;
-let dir = 'ec';
-const PRESETS = { ec: [20,50,100,200,500], ce: [10000,50000,100000,500000] };
-function fmt(n,isCOP){return isCOP?new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(n):new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);}
-function convert(){const v=parseFloat(document.getElementById('amt').value);const el=document.getElementById('res');if(isNaN(v)||v<0){el.textContent='—';return;}el.textContent=dir==='ec'?fmt(v*RATE,true)+' $':fmt(v/RATE,false)+' €';}
-function renderPresets(){const row=document.getElementById('presets');row.innerHTML='';PRESETS[dir].forEach(v=>{const b=document.createElement('button');b.className='preset-btn';b.textContent=dir==='ec'?(v>=1000?v/1000+'k €':v+' €'):(v>=1000?(v/1000)+'k $':v+' $');b.onclick=()=>{document.querySelectorAll('.preset-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('amt').value=v;convert();};row.appendChild(b);});}
-function setDir(d){dir=d;document.getElementById('btn-ec').classList.toggle('active',d==='ec');document.getElementById('btn-ce').classList.toggle('active',d==='ce');if(d==='ec'){document.getElementById('from-lbl').textContent='Euro';document.getElementById('to-lbl').textContent='Peso Colombiano';document.getElementById('from-pfx').textContent='EUR';document.getElementById('to-pfx').textContent='COP';document.getElementById('rate-txt').textContent='1 EUR = '+fmt(RATE,true)+' COP';}else{document.getElementById('from-lbl').textContent='Peso Colombiano';document.getElementById('to-lbl').textContent='Euro';document.getElementById('from-pfx').textContent='COP';document.getElementById('to-pfx').textContent='EUR';document.getElementById('rate-txt').textContent='1 COP = '+(1/RATE).toFixed(6)+' EUR';}document.getElementById('amt').value=PRESETS[d][1];renderPresets();convert();}
-document.getElementById('amt').addEventListener('input',()=>{document.querySelectorAll('.preset-btn').forEach(x=>x.classList.remove('active'));convert();});
-setDir('ec');
+let updating = false;
+const eurEl = document.getElementById('eur');
+const copEl = document.getElementById('cop');
+function fmt(n) { return parseFloat(n.toFixed(2)); }
+eurEl.addEventListener('input', () => {
+  if (updating) return; updating = true;
+  const v = parseFloat(eurEl.value);
+  copEl.value = isNaN(v) ? '' : fmt(v * RATE);
+  clearPresets(); updating = false;
+});
+copEl.addEventListener('input', () => {
+  if (updating) return; updating = true;
+  const v = parseFloat(copEl.value);
+  eurEl.value = isNaN(v) ? '' : fmt(v / RATE);
+  clearPresets(); updating = false;
+});
+function setEUR(v) {
+  eurEl.value = v; copEl.value = fmt(v * RATE); clearPresets();
+  document.querySelectorAll('.preset-btn').forEach(b => { if (b.textContent === v + ' €') b.classList.add('active'); });
+}
+function clearPresets() { document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active')); }
+function swapFocus() { if (document.activeElement === eurEl) copEl.focus(); else eurEl.focus(); }
 </script>
 </body>
 </html>
