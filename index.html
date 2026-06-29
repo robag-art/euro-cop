@@ -18,7 +18,10 @@
   .card { width: 100%; max-width: 360px; }
   .header { margin-bottom: 36px; }
   .title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-  .rate-line { font-size: 12px; color: var(--muted); }
+  .rate-line { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; transition: background .3s; }
+  .dot.live { background: #2ecc71; }
+  .dot.error { background: #e74c3c; }
   .field { margin-bottom: 24px; }
   .field-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
   .input-wrap { position: relative; }
@@ -40,7 +43,10 @@
 <div class="card">
   <div class="header">
     <div class="title">Convertisseur EUR ↔ COP</div>
-    <div class="rate-line">1 EUR = 3 925 COP · XE · 29 juin 2026</div>
+    <div class="rate-line">
+      <span class="dot" id="dot"></span>
+      <span id="rate-txt">Chargement du taux…</span>
+    </div>
   </div>
 
   <div class="field">
@@ -68,7 +74,7 @@
     <div class="field-label">🇨🇴 Peso Colombiano</div>
     <div class="input-wrap">
       <span class="pfx">COP</span>
-      <input type="number" id="cop" value="392529" min="0" inputmode="decimal" placeholder="0">
+      <input type="number" id="cop" min="0" inputmode="decimal" placeholder="0">
     </div>
     <div class="presets" id="cop-presets">
       <button class="preset-btn" onclick="setCOP(10000)">10k $</button>
@@ -80,39 +86,73 @@
   </div>
 
   <div class="footer">
-    Taux mid-market · XE · 29 juin 2026<br>
+    Source : Frankfurter (Banque Centrale Européenne)<br>
     Meilleurs taux à Medellín : Bancolombia ATM ou Revolut/Wise
   </div>
 </div>
+
 <script>
-const RATE = 3925.29;
+let RATE = null;
 let updating = false;
 const eurEl = document.getElementById('eur');
 const copEl = document.getElementById('cop');
+const rateTxt = document.getElementById('rate-txt');
+const dot = document.getElementById('dot');
+
+async function fetchRate() {
+  try {
+    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=COP');
+    const data = await res.json();
+    RATE = data.rates.COP;
+    const date = new Date(data.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    rateTxt.textContent = `1 EUR = ${Math.round(RATE).toLocaleString('fr-FR')} COP · ${date}`;
+    dot.className = 'dot live';
+    // Init conversion
+    const v = parseFloat(eurEl.value);
+    if (!isNaN(v)) copEl.value = fmt(v * RATE);
+  } catch (e) {
+    rateTxt.textContent = 'Taux indisponible (mode hors ligne)';
+    dot.className = 'dot error';
+    // Fallback
+    RATE = 3925.29;
+    const v = parseFloat(eurEl.value);
+    if (!isNaN(v)) copEl.value = fmt(v * RATE);
+  }
+}
+
 function fmt(n) { return parseFloat(n.toFixed(2)); }
 function clearPresets() { document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active')); }
+
 eurEl.addEventListener('input', () => {
-  if (updating) return; updating = true;
+  if (updating || !RATE) return; updating = true;
   const v = parseFloat(eurEl.value);
   copEl.value = isNaN(v) ? '' : fmt(v * RATE);
   clearPresets(); updating = false;
 });
+
 copEl.addEventListener('input', () => {
-  if (updating) return; updating = true;
+  if (updating || !RATE) return; updating = true;
   const v = parseFloat(copEl.value);
   eurEl.value = isNaN(v) ? '' : fmt(v / RATE);
   clearPresets(); updating = false;
 });
+
 function setEUR(v) {
+  if (!RATE) return;
   eurEl.value = v; copEl.value = fmt(v * RATE); clearPresets();
   document.querySelectorAll('#eur-presets .preset-btn').forEach(b => { if (b.textContent === v + ' €') b.classList.add('active'); });
 }
+
 function setCOP(v) {
+  if (!RATE) return;
   copEl.value = v; eurEl.value = fmt(v / RATE); clearPresets();
-  const label = v >= 1000 ? (v/1000) + 'k $' : v + ' $';
+  const label = (v / 1000) + 'k $';
   document.querySelectorAll('#cop-presets .preset-btn').forEach(b => { if (b.textContent === label) b.classList.add('active'); });
 }
+
 function swapFocus() { if (document.activeElement === eurEl) copEl.focus(); else eurEl.focus(); }
+
+fetchRate();
 </script>
 </body>
 </html>
