@@ -55,7 +55,7 @@
       <span class="pfx">EUR</span>
       <input type="number" id="eur" value="100" min="0" inputmode="decimal" placeholder="0">
     </div>
-    <div class="presets" id="eur-presets">
+    <div class="presets">
       <button class="preset-btn" onclick="setEUR(20)">20 €</button>
       <button class="preset-btn" onclick="setEUR(50)">50 €</button>
       <button class="preset-btn active" onclick="setEUR(100)">100 €</button>
@@ -76,7 +76,7 @@
       <span class="pfx">COP</span>
       <input type="number" id="cop" min="0" inputmode="decimal" placeholder="0">
     </div>
-    <div class="presets" id="cop-presets">
+    <div class="presets">
       <button class="preset-btn" onclick="setCOP(10000)">10k $</button>
       <button class="preset-btn" onclick="setCOP(50000)">50k $</button>
       <button class="preset-btn" onclick="setCOP(100000)">100k $</button>
@@ -86,7 +86,7 @@
   </div>
 
   <div class="footer">
-    Source : Frankfurter (Banque Centrale Européenne)<br>
+    Source : open.er-api.com · mise à jour quotidienne<br>
     Meilleurs taux à Medellín : Bancolombia ATM ou Revolut/Wise
   </div>
 </div>
@@ -100,24 +100,44 @@ const rateTxt = document.getElementById('rate-txt');
 const dot = document.getElementById('dot');
 
 async function fetchRate() {
+  // API 1 : open.er-api.com (sans clé, CORS ok)
   try {
-    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=COP');
+    const res = await fetch('https://open.er-api.com/v6/latest/EUR');
     const data = await res.json();
-    RATE = data.rates.COP;
-    const date = new Date(data.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-    rateTxt.textContent = `1 EUR = ${Math.round(RATE).toLocaleString('fr-FR')} COP · ${date}`;
-    dot.className = 'dot live';
-    // Init conversion
-    const v = parseFloat(eurEl.value);
-    if (!isNaN(v)) copEl.value = fmt(v * RATE);
-  } catch (e) {
-    rateTxt.textContent = 'Taux indisponible (mode hors ligne)';
-    dot.className = 'dot error';
-    // Fallback
-    RATE = 3925.29;
-    const v = parseFloat(eurEl.value);
-    if (!isNaN(v)) copEl.value = fmt(v * RATE);
-  }
+    if (data.result === 'success' && data.rates && data.rates.COP) {
+      RATE = data.rates.COP;
+      const d = new Date(data.time_last_update_utc);
+      const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      rateTxt.textContent = `1 EUR = ${Math.round(RATE).toLocaleString('fr-FR')} COP · ${dateStr}`;
+      dot.className = 'dot live';
+      initConvert();
+      return;
+    }
+  } catch(e) {}
+
+  // API 2 : frankfurter.dev v2 (fallback)
+  try {
+    const res = await fetch('https://api.frankfurter.dev/v2/rate/EUR/COP');
+    const data = await res.json();
+    if (data.rate) {
+      RATE = data.rate;
+      rateTxt.textContent = `1 EUR = ${Math.round(RATE).toLocaleString('fr-FR')} COP · BCE`;
+      dot.className = 'dot live';
+      initConvert();
+      return;
+    }
+  } catch(e) {}
+
+  // Fallback statique
+  RATE = 3925.29;
+  rateTxt.textContent = 'Taux hors ligne · 1 EUR ≈ 3 925 COP';
+  dot.className = 'dot error';
+  initConvert();
+}
+
+function initConvert() {
+  const v = parseFloat(eurEl.value);
+  if (!isNaN(v)) copEl.value = fmt(v * RATE);
 }
 
 function fmt(n) { return parseFloat(n.toFixed(2)); }
@@ -140,14 +160,14 @@ copEl.addEventListener('input', () => {
 function setEUR(v) {
   if (!RATE) return;
   eurEl.value = v; copEl.value = fmt(v * RATE); clearPresets();
-  document.querySelectorAll('#eur-presets .preset-btn').forEach(b => { if (b.textContent === v + ' €') b.classList.add('active'); });
+  document.querySelectorAll('.preset-btn').forEach(b => { if (b.textContent === v + ' €') b.classList.add('active'); });
 }
 
 function setCOP(v) {
   if (!RATE) return;
   copEl.value = v; eurEl.value = fmt(v / RATE); clearPresets();
   const label = (v / 1000) + 'k $';
-  document.querySelectorAll('#cop-presets .preset-btn').forEach(b => { if (b.textContent === label) b.classList.add('active'); });
+  document.querySelectorAll('.preset-btn').forEach(b => { if (b.textContent === label) b.classList.add('active'); });
 }
 
 function swapFocus() { if (document.activeElement === eurEl) copEl.focus(); else eurEl.focus(); }
