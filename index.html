@@ -86,7 +86,7 @@
   </div>
   <div class="footer">
     🟢 taux live · 🟡 dernier taux connu · 🔴 hors ligne<br>
-    BCE · jours ouvrés uniquement · Revolut/Wise pour les meilleurs taux
+    BCE · jours ouvrés · Revolut/Wise pour les meilleurs taux
   </div>
 </div>
 <script>
@@ -97,9 +97,8 @@ const copEl = document.getElementById('cop');
 const rateTxt = document.getElementById('rate-txt');
 const dot = document.getElementById('dot');
 
-// Enregistrement Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/euro-cop/sw.js').catch(() => {});
 }
 
 function setStatus(type, text) {
@@ -108,7 +107,6 @@ function setStatus(type, text) {
 }
 
 async function fetchRate() {
-  // Essai API live
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/EUR', { cache: 'no-store' });
     const data = await res.json();
@@ -123,7 +121,6 @@ async function fetchRate() {
     }
   } catch(e) {}
 
-  // Fallback : dernier taux en cache local
   const cached = localStorage.getItem('eur_cop_rate');
   const cachedDate = localStorage.getItem('eur_cop_date');
   if (cached) {
@@ -133,7 +130,6 @@ async function fetchRate() {
     return;
   }
 
-  // Dernier recours
   RATE = 3925.29;
   setStatus('error', '1 EUR ≈ 3 925 COP · taux de secours');
   initConvert();
