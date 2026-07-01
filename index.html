@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="EUR↔COP">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <title>EUR ↔ COP</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -21,6 +23,7 @@
   .rate-line { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; transition: background .3s; }
   .dot.live { background: #2ecc71; }
+  .dot.cached { background: #f0b429; }
   .dot.error { background: #e74c3c; }
   .field { margin-bottom: 24px; }
   .field-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
@@ -45,10 +48,9 @@
     <div class="title">Convertisseur EUR ↔ COP</div>
     <div class="rate-line">
       <span class="dot" id="dot"></span>
-      <span id="rate-txt">Chargement du taux…</span>
+      <span id="rate-txt">Chargement…</span>
     </div>
   </div>
-
   <div class="field">
     <div class="field-label">🇪🇺 Euro</div>
     <div class="input-wrap">
@@ -63,13 +65,11 @@
       <button class="preset-btn" onclick="setEUR(500)">500 €</button>
     </div>
   </div>
-
   <div class="swap-row">
     <div class="swap-line"></div>
     <button class="swap-btn" onclick="swapFocus()">⇅</button>
     <div class="swap-line"></div>
   </div>
-
   <div class="field">
     <div class="field-label">🇨🇴 Peso Colombiano</div>
     <div class="input-wrap">
@@ -84,13 +84,11 @@
       <button class="preset-btn" onclick="setCOP(500000)">500k $</button>
     </div>
   </div>
-
   <div class="footer">
-    Source : open.er-api.com · mise à jour quotidienne<br>
-    Meilleurs taux à Medellín : Bancolombia ATM ou Revolut/Wise
+    🟢 taux live · 🟡 dernier taux connu · 🔴 hors ligne<br>
+    BCE · jours ouvrés uniquement · Revolut/Wise pour les meilleurs taux
   </div>
 </div>
-
 <script>
 let RATE = null;
 let updating = false;
@@ -99,39 +97,45 @@ const copEl = document.getElementById('cop');
 const rateTxt = document.getElementById('rate-txt');
 const dot = document.getElementById('dot');
 
+// Enregistrement Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+function setStatus(type, text) {
+  dot.className = 'dot ' + type;
+  rateTxt.textContent = text;
+}
+
 async function fetchRate() {
-  // API 1 : open.er-api.com (sans clé, CORS ok)
+  // Essai API live
   try {
-    const res = await fetch('https://open.er-api.com/v6/latest/EUR');
+    const res = await fetch('https://open.er-api.com/v6/latest/EUR', { cache: 'no-store' });
     const data = await res.json();
-    if (data.result === 'success' && data.rates && data.rates.COP) {
+    if (data.result === 'success' && data.rates?.COP) {
       RATE = data.rates.COP;
-      const d = new Date(data.time_last_update_utc);
-      const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-      rateTxt.textContent = `1 EUR = ${Math.round(RATE).toLocaleString('fr-FR')} COP · ${dateStr}`;
-      dot.className = 'dot live';
+      const dateStr = new Date(data.time_last_update_utc).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      localStorage.setItem('eur_cop_rate', RATE);
+      localStorage.setItem('eur_cop_date', dateStr);
+      setStatus('live', `1 EUR = ${Math.round(RATE).toLocaleString('fr-FR')} COP · ${dateStr}`);
       initConvert();
       return;
     }
   } catch(e) {}
 
-  // API 2 : frankfurter.dev v2 (fallback)
-  try {
-    const res = await fetch('https://api.frankfurter.dev/v2/rate/EUR/COP');
-    const data = await res.json();
-    if (data.rate) {
-      RATE = data.rate;
-      rateTxt.textContent = `1 EUR = ${Math.round(RATE).toLocaleString('fr-FR')} COP · BCE`;
-      dot.className = 'dot live';
-      initConvert();
-      return;
-    }
-  } catch(e) {}
+  // Fallback : dernier taux en cache local
+  const cached = localStorage.getItem('eur_cop_rate');
+  const cachedDate = localStorage.getItem('eur_cop_date');
+  if (cached) {
+    RATE = parseFloat(cached);
+    setStatus('cached', `1 EUR ≈ ${Math.round(RATE).toLocaleString('fr-FR')} COP · ${cachedDate} (hors ligne)`);
+    initConvert();
+    return;
+  }
 
-  // Fallback statique
+  // Dernier recours
   RATE = 3925.29;
-  rateTxt.textContent = 'Taux hors ligne · 1 EUR ≈ 3 925 COP';
-  dot.className = 'dot error';
+  setStatus('error', '1 EUR ≈ 3 925 COP · taux de secours');
   initConvert();
 }
 
